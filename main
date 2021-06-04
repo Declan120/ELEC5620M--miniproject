@@ -1,0 +1,41 @@
+#include "DE1SoC_LT24/DE1SoC_LT24.h"
+#include "HPS_Watchdog/HPS_Watchdog.h"
+#include "HPS_usleep/HPS_usleep.h"
+
+#include <stdlib.h>
+void exitOnFail(signed int status, signed int successStatus){
+    if (status != successStatus) {
+        exit((int)status); //Add breakpoint here to catch failure
+    }
+}
+
+volatile unsigned int *key_ptr = (unsigned int *)0xFF200050;
+
+unsigned int key_last_state = 0;
+
+unsigned int getPressedKeys() {
+
+        // Store the current state of the keys.
+        unsigned int key_current_state = *key_ptr;
+
+        // If the key was down last cycle, and is up now, mark as pressed.
+        unsigned int keys_pressed = (~key_current_state) & (key_last_state);
+
+        // Save the key state for next time, so we can compare the next state to this.
+        key_last_state = key_current_state;
+
+        // Return result.
+        return keys_pressed;
+    }
+
+int main(void){
+
+unsigned int keys_pressed = 0;
+
+exitOnFail(
+            LT24_initialise(0xFF200060,0xFF200080), //Initialise LCD
+            LT24_SUCCESS);                          //Exit if not successful
+    HPS_ResetWatchdog();
+
+}
+
